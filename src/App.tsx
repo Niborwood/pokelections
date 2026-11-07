@@ -1,12 +1,9 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { voteForPokemon } from "./api/pokemon";
 import "./App.css";
-import {
-  getRandomPokemonID,
-} from "./utils";
+import { getRandomPokemonID } from "./utils";
 import { useEffect, useState } from "react";
 import { Opponent } from "./components/Opponent";
 import { User } from "./components/User";
+import { Actions } from "./components/Actions";
 
 // TODO :
 // - Do the layout
@@ -17,68 +14,20 @@ import { User } from "./components/User";
 // - Remember last ball
 
 function App() {
-  const queryClient = useQueryClient();
   const [randomPokemonID, setRandomPokemonID] = useState<number | null>(null);
   useEffect(() => {
     setRandomPokemonID(getRandomPokemonID());
   }, []);
 
-  const voteMutation = useMutation({
-    mutationFn: async ({
-      pokemonName,
-      candidate,
-    }: {
-      pokemonName: string;
-      candidate: string;
-    }) => {
-      return await voteForPokemon(pokemonName, candidate);
-    },
-    onSuccess: (data) => {
-      console.log("Vote successful:", data);
-      setRandomPokemonID(getRandomPokemonID()); // Fetch a new random Pokemon after a successful vote
-      queryClient.invalidateQueries({
-        queryKey: ["getPokemon", randomPokemonID],
-      });
-    },
-    onError: (error) => {
-      console.error("Error voting for Pokemon:", error);
-    },
-  });
-
   return (
     <>
-      {/*Pokemon display*/}
-
-
-      {/*Ball display*/}
       <section id="pokemon-screen">
-
         <Opponent randomPokemonID={randomPokemonID} />
         <User />
-        <div id="actions" className="border-4">
-          <div id=""></div>
-        </div>
-        {/*{candidates.map((candidate) => (
-          <button
-            className="border-2 p-2 flex gap-2 items-center"
-            onClick={async () =>
-              await voteMutation.mutateAsync({
-                pokemonName: getTranslatedPokemonName(pokemon!),
-                candidate,
-              })
-            }
-          >
-            {voteMutation.isPending &&
-            voteMutation.variables?.candidate === candidate
-              ? "En cours..."
-              : `Lancer une ${candidate} ball !`}
-            <img
-              id={candidate}
-              src={getCandidateBall(candidate)}
-              alt={`${candidate} Ball`}
-            />
-          </button>
-        ))}*/}
+        <Actions
+          randomPokemonID={randomPokemonID}
+          setRandomPokemonID={setRandomPokemonID}
+        />
       </section>
 
       {/*Footer*/}
