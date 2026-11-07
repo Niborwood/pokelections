@@ -19,6 +19,7 @@
     "@aws-sdk/client-dynamodb": "^3.1163.0",
     "@aws-sdk/lib-dynamodb": "^3.1163.0",
     "@dnd-kit/react": "^0.5.3",
+    "@tailwindcss/vite": "^4.3.5",
     "@tanstack/react-query": "^5.105.3",
     "aws-lambda": "^1.0.7",
     "install": "^0.13.0",

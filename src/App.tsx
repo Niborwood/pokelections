@@ -1,15 +1,12 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { getPokemon, voteForPokemon } from "./api/pokemon";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { voteForPokemon } from "./api/pokemon";
 import "./App.css";
-import { DragDropProvider, useDraggable, useDroppable } from "@dnd-kit/react";
 import {
-  getCandidateBall,
   getRandomPokemonID,
-  getTranslatedPokemonName,
 } from "./utils";
-import type { PokemonSpecies } from "./types";
 import { useEffect, useState } from "react";
-import { candidates } from "../lambdas/constants/candidates";
+import { Opponent } from "./components/Opponent";
+import { User } from "./components/User";
 
 // TODO :
 // - Do the layout
@@ -25,13 +22,6 @@ function App() {
   useEffect(() => {
     setRandomPokemonID(getRandomPokemonID());
   }, []);
-
-  const pokemonQuery = useQuery<PokemonSpecies>({
-    queryKey: ["getPokemon", randomPokemonID],
-    queryFn: async () => await getPokemon(randomPokemonID ?? 0),
-    enabled: randomPokemonID !== null,
-    staleTime: 1000 * 60 * 5, // Cache for 5 minutes
-  });
 
   const voteMutation = useMutation({
     mutationFn: async ({
@@ -55,77 +45,20 @@ function App() {
     },
   });
 
-  const { ref: refDraggable } = useDraggable({
-    id: "draggable",
-  });
-
-  useEffect(() => {
-    const vote = async () => {
-      const res = await fetch(
-        "https://80p0jbryqc.execute-api.eu-west-3.amazonaws.com/prod/vote",
-        {
-          method: "POST",
-        },
-      );
-
-      console.log("api", await res.json());
-    };
-
-    vote();
-  }, []);
-
-  const { ref: refDroppable } = useDroppable({
-    id: "droppable",
-  });
-
-  const handleDragStart = () => {
-    console.log("Drag started");
-  };
-
-  const handleDragEnd = () => {
-    console.log("Drag ended");
-  };
-
-  const handleCollision = () => {
-    console.log("Collision detected");
-  };
-
-  const pokemon = pokemonQuery.data;
-
   return (
     <>
-      {/*Title*/}
-      <h1 className="text-3xl font-bold underline">Pokélections</h1>
-      <h2>Attrape ce Pokémon !</h2>
-
       {/*Pokemon display*/}
-      <section>
-        {pokemonQuery.isLoading && <p>Loading...</p>}
-        {pokemonQuery.isError && (
-          <p>
-            Error:{" "}
-            {pokemonQuery.error instanceof Error
-              ? pokemonQuery.error.message
-              : "Unknown error"}
-          </p>
-        )}
-        {pokemon && (
-          <div>
-            <h3>{getTranslatedPokemonName(pokemon)}</h3>
-            <img
-              ref={refDroppable}
-              id={pokemon.name}
-              src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${randomPokemonID}.png`}
-              alt={pokemon.name}
-            />
-          </div>
-        )}
-      </section>
+
 
       {/*Ball display*/}
-      <section>
-        <div className="carousel-balls"></div>
-        {candidates.map((candidate) => (
+      <section id="pokemon-screen">
+
+        <Opponent randomPokemonID={randomPokemonID} />
+        <User />
+        <div id="actions" className="border-4">
+          <div id=""></div>
+        </div>
+        {/*{candidates.map((candidate) => (
           <button
             className="border-2 p-2 flex gap-2 items-center"
             onClick={async () =>
@@ -140,13 +73,12 @@ function App() {
               ? "En cours..."
               : `Lancer une ${candidate} ball !`}
             <img
-              ref={refDraggable}
               id={candidate}
               src={getCandidateBall(candidate)}
               alt={`${candidate} Ball`}
             />
           </button>
-        ))}
+        ))}*/}
       </section>
 
       {/*Footer*/}
