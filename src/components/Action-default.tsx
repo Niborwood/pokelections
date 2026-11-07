@@ -12,7 +12,7 @@ export const ActionDefault = () => {
   };
 
   return (
-    <div className="grid grid-cols-2 w-fit gap-2 border-4 p-1">
+    <div className="grid grid-cols-2 w-fit gap-2 border-4 p-1 max-h-[80px]">
       <button onClick={() => setActiveSubMenu("BALLS")}>BALLS</button>
       <button onClick={() => setActiveSubMenu("PKMN")}>PKMN</button>
       <button onClick={() => setActiveSubMenu("CANDI")}>CANDI</button>

@@ -1,7 +1,9 @@
 import { POKELECTIONS_API_BASE, POKEMON_API_BASE } from "../constants/api";
+import type { PokemonSpecies } from "../types";
 
-export const getPokemon = async (id: number) => {
+export const getPokemon = async (id: number): Promise<PokemonSpecies> => {
   const res = await fetch(`${POKEMON_API_BASE}/pokemon-species/${id}`);
+  if (!res.ok) throw new Error("Error getting Pokémon");
   return await res.json();
 };
 
