@@ -1,6 +1,6 @@
 import "./App.css";
 import { getRandomPokemonID } from "./utils";
-import { useEffect, useState } from "react";
+import { useEffect, useState, createContext } from "react";
 import { Opponent } from "./components/Opponent";
 import { User } from "./components/User";
 import { Actions } from "./components/Actions";
@@ -12,6 +12,12 @@ import { Actions } from "./components/Actions";
 // - Remember votes in local storage and exclude them from the available pokemons
 // - Add a filter button by generations
 // - Remember last ball
+//
+
+export const AppContext = createContext({
+  randomPokemonID: null,
+  setRandomPokemonID: null,
+});
 
 function App() {
   const [randomPokemonID, setRandomPokemonID] = useState<number | null>(null);
@@ -20,14 +26,16 @@ function App() {
   }, []);
 
   return (
-    <>
+    <AppContext
+      value={{
+        randomPokemonID,
+        setRandomPokemonID,
+      }}
+    >
       <section id="pokemon-screen">
-        <Opponent randomPokemonID={randomPokemonID} />
+        <Opponent />
         <User />
-        <Actions
-          randomPokemonID={randomPokemonID}
-          setRandomPokemonID={setRandomPokemonID}
-        />
+        <Actions />
       </section>
 
       {/*Footer*/}
@@ -35,7 +43,7 @@ function App() {
         0% IA : aucun token n'a été utilisé pour faire ce site. PokeAPI pour les
         données Pokémon.
       </footer>
-    </>
+    </AppContext>
   );
 }
 

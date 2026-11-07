@@ -2,12 +2,11 @@ import { useQuery } from "@tanstack/react-query";
 import { getPokemon } from "../api/pokemon";
 import type { PokemonSpecies } from "../types";
 import { getTranslatedPokemonName } from "../utils";
+import { useContext } from "react";
+import { AppContext } from "../App";
 
-interface OpponentProps {
-  randomPokemonID: number | null;
-}
-
-export const Opponent = ({randomPokemonID}: OpponentProps) => {
+export const Opponent = () => {
+  const { randomPokemonID } = useContext(AppContext);
   const pokemonQuery = useQuery<PokemonSpecies>({
     queryKey: ["getPokemon", randomPokemonID],
     queryFn: async () => await getPokemon(randomPokemonID ?? 0),
@@ -16,29 +15,29 @@ export const Opponent = ({randomPokemonID}: OpponentProps) => {
   });
   const pokemon = pokemonQuery.data;
 
-    return (
-        <div>
-          <section>
-            {pokemonQuery.isLoading && <p>Loading...</p>}
-            {pokemonQuery.isError && (
-              <p>
-                Error:{" "}
-                {pokemonQuery.error instanceof Error
-                  ? pokemonQuery.error.message
-                  : "Unknown error"}
-              </p>
-            )}
-            {pokemon && (
-              <div>
-                <h3>{getTranslatedPokemonName(pokemon)}</h3>
-                <img
-                  id={pokemon.name}
-                  src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${randomPokemonID}.png`}
-                  alt={pokemon.name}
-                />
-              </div>
-            )}
-          </section>
-        </div>
-    );
+  return (
+    <div>
+      <section>
+        {pokemonQuery.isLoading && <p>Loading...</p>}
+        {pokemonQuery.isError && (
+          <p>
+            Error:{" "}
+            {pokemonQuery.error instanceof Error
+              ? pokemonQuery.error.message
+              : "Unknown error"}
+          </p>
+        )}
+        {pokemon && (
+          <div>
+            <h3>{getTranslatedPokemonName(pokemon)}</h3>
+            <img
+              id={pokemon.name}
+              src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${randomPokemonID}.png`}
+              alt={pokemon.name}
+            />
+          </div>
+        )}
+      </section>
+    </div>
+  );
 };

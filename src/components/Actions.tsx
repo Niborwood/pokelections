@@ -1,14 +1,20 @@
 import { useMutation } from "@tanstack/react-query";
 import { voteForPokemon } from "../api/pokemon";
 import { getRandomPokemonID } from "../utils";
-import type { Dispatch, SetStateAction } from "react";
+import { createContext, useContext, useState } from "react";
+import { AppContext } from "../App";
+import { ActionDefault } from "./Action-default";
+import { ActionBalls } from "./Action-balls";
 
-interface ActionsProps {
-  randomPokemonID: number | null;
-  setRandomPokemonID: Dispatch<SetStateAction<number | null>>;
-}
+type SubMenu = "BALLS" | "PKMN" | "CANDI";
+export const SubMenuContext = createContext({
+  activeSubMenu: null,
+  setActiveSubMenu: null,
+});
 
-export const Actions = ({ setRandomPokemonID }: ActionsProps) => {
+export const Actions = () => {
+  const { setRandomPokemonID } = useContext(AppContext);
+  const [activeSubMenu, setActiveSubMenu] = useState<SubMenu | null>(null);
   const voteMutation = useMutation({
     mutationFn: async ({
       pokemonName,
@@ -31,19 +37,30 @@ export const Actions = ({ setRandomPokemonID }: ActionsProps) => {
     },
   });
 
-  const handleRun = () => {
-    setRandomPokemonID(getRandomPokemonID());
+  const getDisplayedMenu = () => {
+    switch (activeSubMenu) {
+      case "BALLS":
+        return <ActionBalls />;
+      case "CANDI":
+        return <div>Candidate</div>;
+      case "PKMN":
+        return <div>Pokemon</div>;
+      default:
+        return <ActionDefault />;
+    }
   };
 
   return (
-    <section className="border-4 flex justify-end">
-      <div></div>
-      <div className="grid grid-cols-2 w-fit gap-2 border-4 p-1">
-        <button>BALLS</button>
-        <button>PKMN</button>
-        <button>CANDI</button>
-        <button onClick={handleRun}>RUN</button>
-      </div>
-    </section>
+    <SubMenuContext
+      value={{
+        activeSubMenu,
+        setActiveSubMenu,
+      }}
+    >
+      <section className="border-4 flex justify-end">
+        <div></div>
+        {getDisplayedMenu()}
+      </section>
+    </SubMenuContext>
   );
 };
