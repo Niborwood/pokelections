@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "build:lambdas": "esbuild lambdas/vote/index.ts --bundle --platform=node --target=node24 --outfile=dist/lambdas/vote/index.js --minify --external:@aws-sdk",
+    "build:lambdas": "esbuild lambdas/*/index.ts --bundle --platform=node --target=node24 --outdir=dist/lambdas/ --minify --external:@aws-sdk",
     "build:all": "npm run build && npm run build:lambdas",
     "lint": "oxlint",
     "preview": "vite preview",
@@ -23,7 +23,6 @@
     "@tanstack/react-query": "^5.105.3",
     "aws-lambda": "^1.0.7",
     "install": "^0.13.0",
-    "npm": "^11.21.1",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "zod": "^4.6.7"

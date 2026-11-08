@@ -45,14 +45,12 @@ function App() {
     >
       <section
         id="pokemon-screen"
-        className="max-w-[380px] w-[380px] max-h-[380px] h-[380px] m-auto mt-4 border-6 flex flex-col justify-between p-0.5"
+        className="max-w-[330px] w-[330px] max-h-[330px] h-[330px] m-auto mt-4 border-6 flex flex-col justify-between p-0.5"
       >
         <Opponent />
-        <div className="">
+        <div id="bottom-part">
           <User />
-          <div className="">
-            <Actions />
-          </div>
+          <Actions />
         </div>
       </section>
 

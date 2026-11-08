@@ -3,6 +3,8 @@ import { DynamoDBDocumentClient, UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import type { APIGatewayProxyEvent } from "aws-lambda";
 import { z } from "zod";
 import { candidates } from "../constants/candidates";
+import { CORS_HEADERS } from "../constants/index";
+import { parseEventBody } from "../utils";
 
 const client = new DynamoDBClient({});
 const ddbDocClient = DynamoDBDocumentClient.from(client);
@@ -11,50 +13,32 @@ const eventBodySchema = z.object({
   candidate: z.enum(candidates),
   pokemonName: z.string(),
 });
+type BodySchema = z.infer<typeof eventBodySchema>;
 
 export const handler = async (event: APIGatewayProxyEvent) => {
-  if (!event.body) {
-    return {
-      statusCode: 400,
-      headers: { "Access-Control-Allow-Origin": "*" },
-      body: JSON.stringify({
-        message: "Missing request body",
-      }),
-    };
-  }
-
-  const parseResult = eventBodySchema.safeParse(JSON.parse(event.body));
-  if (!parseResult.success) {
-    return {
-      statusCode: 400,
-      headers: { "Access-Control-Allow-Origin": "*" },
-      body: JSON.stringify({
-        message: "Invalid request body",
-        errors: parseResult.error.issues,
-      }),
-    };
-  }
-
-  const { candidate, pokemonName } = parseResult.data;
-  const command = new UpdateCommand({
-    TableName: "PokElectionsVotesTable",
-    Key: {
-      pk: `POKEMON#${pokemonName}`,
-      sk: `CANDIDATE#${candidate}`,
-    },
-    UpdateExpression: "SET voteCount = if_not_exists(voteCount, :start) + :inc",
-    ExpressionAttributeValues: {
-      ":start": 0,
-      ":inc": 1,
-    },
-  });
-
   try {
-    const data = await ddbDocClient.send(command);
-    console.log("Success - item added or updated", data);
+    const data = parseEventBody<BodySchema>(event.body, eventBodySchema);
+
+    const { candidate, pokemonName } = data;
+    const command = new UpdateCommand({
+      TableName: "PokElectionsVotesTable",
+      Key: {
+        pk: `POKEMON#${pokemonName}`,
+        sk: `CANDIDATE#${candidate}`,
+      },
+      UpdateExpression:
+        "SET voteCount = if_not_exists(voteCount, :start) + :inc",
+      ExpressionAttributeValues: {
+        ":start": 0,
+        ":inc": 1,
+      },
+    });
+
+    const response = await ddbDocClient.send(command);
+    console.log("Success - item added or updated", response);
     return {
       statusCode: 200,
-      headers: { "Access-Control-Allow-Origin": "*" },
+      headers: CORS_HEADERS,
       body: JSON.stringify({
         message: `Vote OK -> ${pokemonName} for ${candidate}`,
       }),
@@ -63,7 +47,7 @@ export const handler = async (event: APIGatewayProxyEvent) => {
     console.error("Error", err);
     return {
       statusCode: 500,
-      headers: { "Access-Control-Allow-Origin": "*" },
+      headers: CORS_HEADERS,
     };
   }
 };

@@ -34,23 +34,25 @@ export const ActionBalls = () => {
   return (
     <div className="relative max-h-[80px]">
       <div className="border-4 relative bottom-[148px] right-1 max-w-[146px] w-[146px] max-h-[140px] flex flex-col justify-left overflow-hidden overflow-y-auto bg-white items-start pl-2">
-        {candidates.map((candidate) => {
-          return (
-            <button
-              key={candidate}
-              onClick={async () => {
-                await voteMutation.mutateAsync({
-                  candidate,
-                  pokemonName: currentPokemonName,
-                });
+        {candidates
+          .toSorted((a, b) => a.localeCompare(b, "fr-FR"))
+          .map((candidate) => {
+            return (
+              <button
+                key={candidate}
+                onClick={async () => {
+                  await voteMutation.mutateAsync({
+                    candidate,
+                    pokemonName: currentPokemonName,
+                  });
 
-                setActiveSubMenu(null);
-              }}
-            >
-              {candidate}
-            </button>
-          );
-        })}
+                  setActiveSubMenu(null);
+                }}
+              >
+                {candidate}
+              </button>
+            );
+          })}
         <button onClick={() => setActiveSubMenu(null)}>RETOUR</button>
       </div>
     </div>

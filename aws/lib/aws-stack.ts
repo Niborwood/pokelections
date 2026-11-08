@@ -13,6 +13,8 @@ export class AwsStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id, props);
 
+    // BUCKET
+
     const s3CorsRule: s3.CorsRule = {
       allowedMethods: [s3.HttpMethods.GET, s3.HttpMethods.HEAD],
       allowedOrigins: ["*"],
@@ -26,6 +28,8 @@ export class AwsStack extends Stack {
       accessControl: s3.BucketAccessControl.PRIVATE,
       cors: [s3CorsRule],
     });
+
+    // CLOUDFRONT - CDN
 
     const oai = new cloudfront.OriginAccessIdentity(this, "PokelectionsOAI");
     s3Bucket.grantRead(oai);
@@ -50,6 +54,8 @@ export class AwsStack extends Stack {
       distributionPaths: ["/*"],
     });
 
+    // DYNAMO STORAGE
+
     const votesTable = new dynamo.Table(this, "VotesTable", {
       partitionKey: { name: "pk", type: dynamo.AttributeType.STRING },
       sortKey: { name: "sk", type: dynamo.AttributeType.STRING },
@@ -62,6 +68,8 @@ export class AwsStack extends Stack {
       indexName: "PokElectionsVotesTableGSI",
     });
 
+    // LAMBDAS
+
     const voteLambda = new lambda.Function(this, "VoteLambda", {
       runtime: lambda.Runtime.NODEJS_24_X,
       handler: "index.handler",
@@ -69,17 +77,64 @@ export class AwsStack extends Stack {
     });
     votesTable.grantWriteData(voteLambda);
 
-    const voteApi = new apigateway.LambdaRestApi(this, "VoteApi", {
-      handler: voteLambda,
-      proxy: false,
+    const getPokemonVotesLambda = new lambda.Function(
+      this,
+      "GetPokemonVotesLambda",
+      {
+        runtime: lambda.Runtime.NODEJS_24_X,
+        handler: "index.handler",
+        code: lambda.Code.fromAsset("dist/lambdas/get-pokemon-votes"),
+      },
+    );
+    votesTable.grantReadData(getPokemonVotesLambda);
+
+    const getCandidateVotesLambda = new lambda.Function(
+      this,
+      "getCandidateVotesLambda",
+      {
+        runtime: lambda.Runtime.NODEJS_24_X,
+        handler: "index.handler",
+        code: lambda.Code.fromAsset("dist/lambdas/get-candidate-votes"),
+      },
+    );
+    votesTable.grantReadData(getCandidateVotesLambda);
+
+    // API GATEWAY
+
+    const voteApi = new apigateway.RestApi(this, "VoteApi", {
+      description: "PokElections API",
     });
 
-    const vote = voteApi.root.addResource("vote");
-    vote.addMethod("POST");
-    vote.addCorsPreflight({
+    const postVote = voteApi.root.addResource("vote");
+    postVote.addMethod("POST", new apigateway.LambdaIntegration(voteLambda));
+    postVote.addCorsPreflight({
       allowOrigins: ["*"],
       allowMethods: ["POST"],
     });
+
+    const getPokemonVotes = voteApi.root.addResource("get-pokemon-votes");
+    const getPokemonVotesWithName = getPokemonVotes.addResource("{name}");
+    getPokemonVotesWithName.addMethod(
+      "GET",
+      new apigateway.LambdaIntegration(getPokemonVotesLambda),
+    );
+    getPokemonVotesWithName.addCorsPreflight({
+      allowOrigins: ["*"],
+      allowMethods: ["GET"],
+    });
+
+    const getCandidateVotes = voteApi.root.addResource("get-candidate-votes");
+    const getCandidateVotesWithName = getCandidateVotes.addResource("{name}");
+    getCandidateVotesWithName.addMethod(
+      "GET",
+      new apigateway.LambdaIntegration(getCandidateVotesLambda),
+    );
+    getCandidateVotesWithName.addCorsPreflight({
+      allowOrigins: ["*"],
+      allowMethods: ["GET"],
+    });
+
+    // OUTPUTS
 
     new CfnOutput(this, "CloudFrontDistributionDomainName", {
       value: backendCloudfront.distributionDomainName,

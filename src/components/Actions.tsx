@@ -1,8 +1,4 @@
-import { useMutation } from "@tanstack/react-query";
-import { voteForPokemon } from "../api/pokemon";
-import { getRandomPokemonID } from "../utils";
-import { createContext, useContext, useState } from "react";
-import { AppContext } from "../App";
+import { createContext, useState } from "react";
 import { ActionDefault } from "./Action-default";
 import { ActionBalls } from "./Action-balls";
 
@@ -13,7 +9,6 @@ export const SubMenuContext = createContext({
 });
 
 export const Actions = () => {
-  const { setRandomPokemonID } = useContext(AppContext);
   const [activeSubMenu, setActiveSubMenu] = useState<SubMenu | null>(null);
 
   const getDisplayedMenu = () => {
